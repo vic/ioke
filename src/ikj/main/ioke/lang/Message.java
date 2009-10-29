@@ -467,6 +467,13 @@ public class Message extends IokeData {
                 }
             }));
 
+        message.registerMethod(message.runtime.newNativeMethod("returns true if this message was given an arguments list even if it was empty.", new TypeCheckingNativeMethod.WithNoArguments("activation?", message) {
+                @Override
+                public Object activate(IokeObject method, Object on, List<Object> args, Map<String, Object> keywords, IokeObject context, IokeObject message) throws ControlFlow {
+                    return ((Message)IokeObject.data(on)).isActivation() ? context.runtime._true : context.runtime._false;
+                }
+            }));
+
         message.registerMethod(message.runtime.newNativeMethod("returns a string that describes this message as a stack trace elemtn", new TypeCheckingNativeMethod.WithNoArguments("asStackTraceText", message) {
                 @Override
                 public Object activate(IokeObject method, Object on, List<Object> args, Map<String, Object> keywords, IokeObject context, IokeObject message) throws ControlFlow {
@@ -825,6 +832,10 @@ public class Message extends IokeData {
         }
     }
 
+    public boolean isActivation() {
+	return hasArgumentParens || arguments.size() > 0;
+    }
+
     public boolean isKeyword() {
         return name.length() > 1 && arguments.size() == 0 && 
 	    !hasArgumentParens && name.charAt(name.length()-1) == ':';
@@ -1062,7 +1073,7 @@ public class Message extends IokeData {
 
             if(name.equals(".")) {
                 current = ctx;
-            } else if(name.length() > 0 && m.getArguments().size() == 0 && name.charAt(0) == ':') {
+            } else if(m.isSymbol()) {
                 current = self.runtime.getSymbol(name.substring(1));
                 Message.cacheValue(m, current);
                 lastReal = current;
@@ -1089,7 +1100,7 @@ public class Message extends IokeData {
 
             if(name.equals(".")) {
                 current = ctx;
-            } else if(name.length() > 0 && m.getArguments().size() == 0 && name.charAt(0) == ':') {
+            } else if(m.isSymbol()) {
                 current = self.runtime.getSymbol(name.substring(1));
                 Message.cacheValue(m, current);
                 lastReal = current;
@@ -1115,7 +1126,7 @@ public class Message extends IokeData {
 
             if(name.equals(".")) {
                 current = ctx;
-            } else if(name.length() > 0 && m.getArguments().size() == 0 && name.charAt(0) == ':') {
+            } else if(m.isSymbol()) {
                 current = self.runtime.getSymbol(name.substring(1));
                 Message.cacheValue(m, current);
                 lastReal = current;
@@ -1141,7 +1152,7 @@ public class Message extends IokeData {
 
             if(name.equals(".")) {
                 current = ctx;
-            } else if(name.length() > 0 && m.getArguments().size() == 0 && name.charAt(0) == ':') {
+            } else if(m.isSymbol()) {
                 current = self.runtime.getSymbol(name.substring(1));
                 Message.cacheValue(m, current);
                 lastReal = current;
@@ -1168,7 +1179,7 @@ public class Message extends IokeData {
 
             if(name.equals(".")) {
                 current = ctx;
-            } else if(name.length() > 0 && m.getArguments().size() == 0 && name.charAt(0) == ':') {
+            } else if(m.isSymbol()) {
                 current = self.runtime.getSymbol(name.substring(1));
                 Message.cacheValue(m, current);
                 lastReal = current;
