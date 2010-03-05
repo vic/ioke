@@ -425,9 +425,13 @@ public class Levels {
         if(msgArgCount == 0 && Message.next(msg) != null && ((messageName.equals(":") || messageName.equals("`") || messageName.equals("'") || messageName.equals("''")) ||
                                                              (messageName.equals("-") && Message.isFirstOnLine(msg)))) {
             precedence = -1;
-            Object arg = Message.next(msg);
+            IokeObject arg = Message.next(msg);
             Message.setNext(msg, Message.next(arg));
-            Message.setNext(IokeObject.as(arg, null), null);
+            if(Message.next(arg) != null) {
+                Message.setPrev(Message.next(arg), msg);
+            }
+            Message.setNext(arg, null);
+            Message.setPrev(arg, null);
             msg.getArguments().add(arg);
             msgArgCount++;
         }
