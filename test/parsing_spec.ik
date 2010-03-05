@@ -333,6 +333,19 @@ bar" should == "foobar"
     it("should shuffle the arguments to an inverted operator around",
       Message fromText("foo bar quux :: blarg mux") code should == "blarg mux ::(foo bar quux)"
     )
+
+    it("should correctly set message prev/next when suffling unary operators", 
+      m = Message fromText("foo 'bar baz")
+      m code should == "foo '(bar) baz"
+      m name should == :foo
+      m next name should == :"'"
+      m next arguments length should == 1
+      m next arguments first name should == :bar
+      m next arguments first prev should be nil
+      m next arguments first next should be nil
+      m next next name should == :baz
+      m next next prev should == m next
+    )
   )
 
   describe("strange characters",
