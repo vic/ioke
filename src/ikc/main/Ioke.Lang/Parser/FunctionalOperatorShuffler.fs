@@ -374,7 +374,10 @@ type FunctionalOperatorShuffler(msg:IokeObject, context:IokeObject, message:Ioke
             | (0, _, (":" | "'" | "`" | "''"), _) | (0, _, "-", true) ->
                 let arg = Message.GetNext(msg)
                 Message.SetNext(msg, Message.GetNext(arg))
-                Message.SetNext(IokeObject.As(arg, null), null)
+                if not(Message.GetNext(arg) = null) then
+                   Message.SetPrev(Message.GetNext(arg), msg)
+                Message.SetNext(arg, null);
+                Message.SetPrev(arg, null);
                 msg.Arguments.Add(arg) |> ignore
                 (-1, msgArgCount + 1)
             | _ -> (precedence, msgArgCount)
