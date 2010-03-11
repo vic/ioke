@@ -346,6 +346,32 @@ bar" should == "foobar"
       m next next name should == :baz
       m next next prev should == m next
     )
+
+    describe("multiple inverted operators in a message chain", 
+
+      it("should shuffle messages correctly",
+        m = Message fromText("baz :: bar ::: foo")
+        m code should == "foo :::(bar ::(baz))"
+      )
+      
+      it("should not shuffle operators with explicit arguments",
+        m = Message fromText("baz :: bar ::(1) ::: foo")
+        m code should == "foo :::(bar ::(1) ::(baz))"
+      )
+
+      it("should shuffle messages inside arguments", 
+        m = Message fromText("baz :: bar(a = 1 + 2, 'foo) ::: foo(4)")
+        m code should == "foo(4) :::(bar(=(a, 1 +(2)), '(foo)) ::(baz))"
+      )
+
+      it("should shuffle inverted operators inside arguments", 
+        m = Message fromText("baz :: bar(a :: b) ::: foo")
+        m code should == "foo :::(bar(b ::(a)) ::(baz))"
+      )
+      
+    )
+    
+
   )
 
   describe("strange characters",
