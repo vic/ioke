@@ -652,4 +652,46 @@ describe(Message,
       m2 position should == m1 position
     )
   )
+
+  describe("deepCopy",
+    
+    it("should return a new message with the same name",
+      m = '(foo)
+      c = m deepCopy
+      c should not be same(m)
+      c name should == m name
+    )
+
+    it("should return a new message with the arguments deepCopied",
+      m = '(foo(bar, quux))
+      c = m deepCopy
+      c should not be same(m)
+      c arguments length should == m arguments length
+      c arguments each(i, b,
+        a = m arguments[i]
+        b should not be same(a)
+        b name should == a name
+      )
+    )
+
+    it("should return a new message with previous set to nil",
+      m = '(foo bar quux)
+      c = m next deepCopy
+      c code should == m next code
+      c prev should be nil
+    )
+
+    it("should set next/prev references to copied messages",
+      m = '(foo bar quux)
+      c = m deepCopy
+      c should not be same(m)
+      c name should == m name
+      c next should not be same(m next)
+      c next name should == m next name
+      c next prev should be(c)
+    )
+
+  )
+
+  
 )
