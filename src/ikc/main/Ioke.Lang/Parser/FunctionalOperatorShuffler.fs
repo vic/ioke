@@ -383,26 +383,56 @@ type FunctionalOperatorShuffler(msg:IokeObject, context:IokeObject, message:Ioke
             | _ -> (precedence, msgArgCount)
 
 
+    let rec find_direction_inverted (transform : IokeObject -> IokeObject) current =
+        match transform current with
+            | null -> current
+            | transformed ->
+                if not(Message.IsTerminator(transformed)) && 
+                   not(isInverted(runtime.GetSymbol(Message.GetName(transformed))) && 
+                       0 = transformed.Arguments.Count) then
+                    find_direction transform transformed
+                else
+                    current
+
+    let find_last_inverted = find_direction_inverted (fun next -> Message.GetNext(next))
+
     let actual_detaching msgArgCount (msg : IokeObject) =
         let head = find_head msg
         if not(Object.ReferenceEquals(head, msg)) then
-            let argPart = Message.DeepCopy(head)
-            match Message.GetPrev(msg) with
-                | null -> ()
-                | prev -> Message.SetNext(prev, null)
+            Message.SetNext(Message.GetPrev(msg), null)
             Message.SetPrev(msg, null)
-            msg.Arguments.Add(argPart) |> ignore
 
             let next = Message.GetNext(msg)
-            let last = find_last next
+            Message.SetNext(msg, null)
+            Message.SetPrev(next, null)
+
+            let last = find_last_inverted next
+
             let cont = Message.GetNext(last)
+            Message.SetNext(last, null)
+            if not(cont = null) then
+               Message.SetPrev(cont, null)
+            
             Message.SetNext(msg, cont)
             if not(cont = null) then
                 Message.SetPrev(cont, msg)
+
+            let argPart = Message.DeepCopy(head)
+            msg.Arguments.Add(argPart) |> ignore
+            (-1, msgArgCount + 1) |> ignore
+            
             Message.SetNext(last, msg)
             Message.SetPrev(msg, last)
 
             head.Become(next, null, null)
+
+            // be sure to update the prev reference to the head object
+            Message.SetPrev(Message.GetNext(head), head)
+
+            // attaching inverted op to the last message
+            let currentLevel = CurrentLevel ()
+            currentLevel.message <- last
+            
         msgArgCount
 
     let handle_detach_of_message (precedence, msgArgCount) inverted (msg : IokeObject) =

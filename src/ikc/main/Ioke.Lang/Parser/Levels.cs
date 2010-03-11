@@ -418,31 +418,41 @@ namespace Ioke.Lang.Parser {
                 }
 
                 if(head != msg) {
-                    IokeObject argPart = Message.DeepCopy(head);
 
-                    if(Message.GetPrev(msg) != null) {
-                        Message.SetNext(Message.GetPrev(msg), null);
-                    }
+                    Message.SetNext(Message.GetPrev(msg), null);
                     Message.SetPrev(msg, null);
 
-                    //                    IokeObject beforeHead = Message.GetPrev(head);
-                    msg.Arguments.Add(argPart);
-
                     IokeObject next = Message.GetNext(msg);
+                    Message.SetNext(msg, null);
+                    Message.SetPrev(next, null);
 
                     IokeObject last = next;
-                    while(Message.GetNext(last) != null && !Message.IsTerminator(Message.GetNext(last))) {
+                    while(Message.GetNext(last) != null &&
+                          !Message.IsTerminator(Message.GetNext(last)) &&
+                          !(IsInverted(runtime.GetSymbol(Message.GetName(Message.GetNext(last)))) &&
+                            0 == Message.GetNext(last).Arguments.Count)) {
                         last = Message.GetNext(last);
                     }
                     IokeObject cont = Message.GetNext(last);
-                    Message.SetNext(msg, cont);
+                    Message.SetNext(last, cont);
                     if(cont != null) {
-                        Message.SetPrev(cont, msg);
+                        Message.SetPrev(cont, null);
                     }
+
+                    IokeObject argPart = Message.DeepCopy(head);
+                    msg.Arguments.Add(argPart);
+                    msgArgCount++;
+
                     Message.SetNext(last, msg);
                     Message.SetPrev(msg, last);
 
                     head.Become(next, null, null);
+
+                    // be sure to update the prev reference to the head object
+                    Message.SetPrev(Message.GetNext(head), head);
+
+                    // attaching inverted op to the last message
+                    CurrentLevel().message = last;
                 }
             }
 
