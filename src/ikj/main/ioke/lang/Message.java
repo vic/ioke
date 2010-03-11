@@ -117,7 +117,7 @@ public class Message extends IokeData {
 
         if(orgMsg.next != null) {
             copyMsg.next = deepCopy(orgMsg.next);
-            Message.setPrev(orgMsg.next, copy);
+            Message.setPrev(copyMsg.next, copy);
         }
 
         return copy;
