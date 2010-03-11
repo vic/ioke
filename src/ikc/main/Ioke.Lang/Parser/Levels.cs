@@ -399,9 +399,13 @@ namespace Ioke.Lang.Parser {
             if(msgArgCount == 0 && Message.GetNext(msg) != null && ((messageName.Equals(":") || messageName.Equals("`") || messageName.Equals("'")) ||
                                                                     (messageName.Equals("-") && Message.GetPrev(msg) == null))) {
                 precedence = -1;
-                object arg = Message.GetNext(msg);
+                IokeObject arg = Message.GetNext(msg);
                 Message.SetNext(msg, Message.GetNext(arg));
-                Message.SetNext(IokeObject.As(arg, null), null);
+                if(Message.GetNext(arg) != null) {
+                   Message.SetPrev(Message.GetNext(arg), msg);
+                }
+                Message.SetNext(arg, null);
+                Message.SetPrev(arg, null);
                 msg.Arguments.Add(arg);
                 msgArgCount++;
             }
