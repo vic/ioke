@@ -119,7 +119,7 @@ namespace Ioke.Lang {
 
             if(orgMsg.next != null) {
                 copyMsg.next = DeepCopy(orgMsg.next);
-                Message.SetPrev(orgMsg.next, copy);
+                Message.SetPrev(copyMsg.next, copy);
             }
 
             return copy;
