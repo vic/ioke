@@ -438,37 +438,54 @@ public class Levels {
 
 
         if(inverted && msgArgCount == 0) {
+
             IokeObject head = msg;
             while(Message.prev(head) != null && !Message.isTerminator(Message.prev(head))) {
                 head = Message.prev(head);
             }
-
+            
             if(head != msg) {
-                IokeObject argPart = Message.deepCopy(head);
 
-                if(Message.prev(msg) != null) {
-                    Message.setNext(Message.prev(msg), null);
-                }
+                Message.setNext(Message.prev(msg), null);
                 Message.setPrev(msg, null);
 
-                IokeObject beforeHead = Message.prev(head);
-                msg.getArguments().add(argPart);
-
                 IokeObject next = Message.next(msg);
+                Message.setNext(msg, null);
+                Message.setPrev(next, null);
 
                 IokeObject last = next;
-                while(Message.next(last) != null && !Message.isTerminator(Message.next(last))) {
+                while(Message.next(last) != null && 
+                      !Message.isTerminator(Message.next(last)) && 
+                      !(isInverted(runtime.getSymbol(Message.name(Message.next(last)))) && 
+                        0 == Message.next(last).getArgumentCount())) {
                     last = Message.next(last);
-                }
+                }               
+                
                 IokeObject cont = Message.next(last);
+                Message.setNext(last, null);
+                if(cont != null) {
+                    Message.setPrev(cont, null);
+                }
+
                 Message.setNext(msg, cont);
                 if(cont != null) {
                     Message.setPrev(cont, msg);
                 }
+
+                IokeObject argPart = Message.deepCopy(head);
+                msg.getArguments().add(0, argPart);
+                msgArgCount ++;
+                
                 Message.setNext(last, msg);
                 Message.setPrev(msg, last);
-
+                
                 head.become(next, null, null);
+                
+                // be sure to update the prev reference to the head object
+                Message.setPrev(Message.next(head), head);
+
+                // attaching inverted op to the last message
+                currentLevel().message = last;
             }
         }
 
@@ -552,7 +569,7 @@ public class Levels {
             }
         } else if(Message.isTerminator(msg)) {
             popDownTo(OP_LEVEL_MAX-1, expressions);
-            attachAndReplace(currentLevel(), msg);
+            attachAndReplace(currentLevel(), msg);            
         } else if(precedence != -1) { // An operator
             if(msgArgCount == 0) {
                 popDownTo(precedence, expressions);
