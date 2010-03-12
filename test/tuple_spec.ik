@@ -44,6 +44,7 @@ describe(DefaultBehavior,
   )
 
   describe("",
+
     it("should return the object sent in to it if one argument is given",
       x = (42+5)
       x should == 47
@@ -58,6 +59,39 @@ describe(DefaultBehavior,
       x = (1,2,3,4)
       x should mimic(Tuple Four)
     )
+
+    it("should evaluate arguments on the receiver",
+      x = [1, 2, 3] (last, first)
+      x should mimic(Tuple Two)
+      x first should == 3
+      x second should == 1
+    )
+
+    it("should evaluate single argument on the receiver",
+      x = [1, 2, 3] (last)
+      x should == 3
+    )
+
+    it("should not reference context variables when given explicit receiver",
+      n = 9
+      fn([1, 2, 3] (last, n, first)) should signal(Condition Error NoSuchCell)
+    )
+    
+    it("should reference context variables when not given explicit receiver",
+      o = Origin with(a: 1, b: 3) do( 
+        foo = method(bar, 
+          baz = bar * 2
+          (a, bar, baz, @b)
+        )
+      )
+      t = o foo(12)
+      t should mimic(Tuple Four)
+      t first should == 1
+      t second should == 12
+      t third should == 24
+      t fourth should == 3
+    )
+
   )
 )
 
