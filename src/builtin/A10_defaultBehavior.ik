@@ -1,13 +1,12 @@
 DefaultBehavior Definitions aliasMethod("fn", "ʎ")
 DefaultBehavior Definitions aliasMethod("fn", "λ")
 
-DefaultBehavior FlowControl cell("") = method(
-  "returns result of evaluating first argument",
-  +args,
-
-  if(args length == 1,
-    args[0],
-    tuple(*args)))
+DefaultBehavior FlowControl cell("") = macro(
+  "evaluates argument on receiver, returns single value if given only one argument otherwise a tuple",
+  rec = if(call ground same?(call receiver), call ground, call receiver)
+  if(call arguments length == 1,
+    call arguments[0] evaluateOn(call ground, rec),
+    call arguments map(evaluateOn(call ground, rec)) asTuple))
 
 DefaultBehavior Boolean - = method(
   "returns the negation of the argument",
